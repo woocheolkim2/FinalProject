@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===== #28. mapper 기본 설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!-- ===== #29. 루트 엘리먼트 및 네임스페이스 설정하기(이 네임스페이스의 이름은 프로젝트 전체 내에서 반드시 고유해야만 한다.) ===== --> 
+<mapper namespace="sw">
+	
+	<!-- 건물유형(대) -->
+	<select id="getBuildList" resultType="String">
+		select buildtype
+		from buildtype	
+	</select>
+	
+	<!-- 옵션종류 -->
+	<select id="getOptionList" resultType="String">
+		select optionname, optionicon
+		from options
+	</select>
+	
+	<!-- 숙소유형 -->
+	<select id="getRoomType" resultType="String">
+		select roomtype_name
+		from roomtype	
+	</select>
+	
+	<!-- 숙소 이용규칙 -->
+	<select id="getRoomRule" resultType="String">
+		select rule_name
+		from allrule
+	</select>
+	
+	<!-- 건물유형(소)-->
+	<select id="getBuildDetailList" parameterType="String" resultType="String">
+		select buildtype_detail_name
+		from buildtype A JOIN buildtype_detail B
+		on A.buildtype_idx = B.fk_buildtype_idx
+		where A.buildtype = #{buildName1}
+	</select> 
+	
+	<select id="getHomeListByOption" parameterType="HashMap" resultType="com.spring.bnb.model.RoomVO">		   
+	  	select *
+		from room A JOIN buildtype_detail B
+		          ON A.fk_buildtype_detail_idx = B.buildtype_detail_idx		          
+		          JOIN roomtype F
+        		  ON A.fk_roomtype_idx = F.roomtype_idx
+		where 1=1 
+		<if test='CHECKIN != "" and CHECKOUT != ""'>
+		and roomcode in (
+		select roomcode
+		from room							
+		minus
+		select roomcode
+		from room A JOIN reservation B
+		ON A.roomcode = B.fk_roomcode
+		JOIN buildtype_detail C
+		ON A.fk_buildtype_detail_idx = C.buildtype_detail_idx							
+		where #{CHECKIN} between to_char(B.rsv_checkindate,'yyyy-mm-dd') and to_char(B.rsv_checkoutdate, 'yyyy-mm-dd')
+		and #{CHECKOUT} between to_char(B.rsv_checkindate,'yyyy-mm-dd') and to_char(B.rsv_checkoutdate, 'yyyy-mm-dd'))
+		</if>							
+		<if test='BUILDNAME2 != ""'> 
+	    and buildtype_detail_name = #{BUILDNAME2}
+	    </if>
+	    <if test='STARTPRICE != "" and ENDPRICE != ""'>
+	    and roomprice between to_number(#{STARTPRICE}) and to_number(#{ENDPRICE})
+	    </if>
+		<if test='SIDOGUGUNDONG != ""'>
+		and roomsido||roomsigungu||roombname like #{SIDO}||#{GUGUN}||#{DONG}
+		</if>
+		<if test='ALLPERSON != ""'>
+		and max_person >= #{ALLPERSON}
+		</if>					   
+	</select>
+	
+	<select id="getRoomList" parameterType="HashMap" resultType="com.spring.bnb.model.RoomVO">
+		select *
+		from room A JOIN buildtype_detail B
+                    ON A.fk_buildtype_detail_idx = B.buildtype_detail_idx
+                    JOIN roomtype C
+                    ON A.fk_roomtype_idx = C.roomtype_idx
+		where 1=1		
+		<if test='CHECKIN != "" and CHECKOUT != ""'>
+		and roomcode in (
+		select roomcode
+		from room							
+		minus
+		select roomcode
+		from room A JOIN reservation B
+		ON A.roomcode = B.fk_roomcode
+		JOIN buildtype_detail C
+		ON A.fk_buildtype_detail_idx = C.buildtype_detail_idx							
+		where #{CHECKIN} between to_char(B.rsv_checkindate,'yyyy-mm-dd') and to_char(B.rsv_checkoutdate, 'yyyy-mm-dd')
+		and #{CHECKOUT} between to_char(B.rsv_checkindate,'yyyy-mm-dd') and to_char(B.rsv_checkoutdate, 'yyyy-mm-dd'))
+		</if>						
+		<if test='SIDO != "" and GUGUN != "" and DONG != ""'> 
+	    and roomsido||roomsigungu||roombname like #{SIDO}||#{GUGUN}||#{DONG}
+	    </if>
+		<!-- select * from room A join roomType B on A.fk_roomtype_idx = B.roomtype_idx -->		
+	</select>
+	
+	<resultMap type="HashMap" id="dataResultMap2">
+		<result property="OPTIONNAME" column="optionname" javaType="String" />
+		<result property="FK_ROOMCODE" column="fk_roomcode" javaType="String" />
+	</resultMap>
+	
+	<select id="getRoomOptionList" parameterType="String" resultMap="dataResultMap2">
+		select*from roomoption R join options O on R.fk_option_idx = O.option_idx
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	<resultMap type="HashMap" id="dataResultMap3">
+		<result property="RULE_NAME" column="rule_name" javaType="String" />
+		<result property="FK_ROOMCODE" column="fk_roomcode" javaType="String" />
+	</resultMap>
+	
+	<select id="getRuleList" parameterType="String" resultMap="dataResultMap3">
+		select*from roomrule A join allrule B on A.fk_rule_idx = B.rule_idx
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	<select id="getReservationList" resultType="com.spring.bnb.model.ReservationVO" parameterType="String"> 
+		select rsv_name, to_char(rsv_checkindate, 'yyyy-mm-dd') AS rsv_checkindate, to_char(rsv_checkoutdate, 'yyyy-mm-dd') AS rsv_checkoutdate
+		     , rsv_phone, guestcount, babycount, rsv_email, fk_userid, totalprice, dcprice, to_char(paydate, 'yyyy-mm-dd') AS paydate, rsv_msg
+		from reservation     
+		where fk_userid = #{userid}
+	</select>	
+	
+	<select id="getSWOptionList" parameterType="HashMap" resultType="com.spring.bnb.model.RoomVO">		
+		select *
+		from room A JOIN buildtype_detail B
+		          ON A.fk_buildtype_detail_idx = B.buildtype_detail_idx		          
+		          JOIN roomtype F
+        		  ON A.fk_roomtype_idx = F.roomtype_idx
+		where roomsido||roomsigungu||roombname like #{SIDO}||#{GUGUN}||#{DONG}	
+		<if test="RULENAME != ''">
+			and not exists(select rule_idx
+							from allrule
+							where rule_name in 
+							<foreach collection="RULENAME" index="i" open="(" separator="," close=")">
+							'${RULENAME[i]}'
+							</foreach>
+							minus                  
+							select fk_rule_idx
+							from room A JOIN roomrule B
+							ON A.roomcode = B.fk_roomcode
+							where roomsido||roomsigungu||roombname like #{SIDO}||#{GUGUN}||#{DONG})							
+		</if>
+		<if test="OPTIONNAME != ''">		                                   
+			and not exists (select option_idx
+							from options
+							where optionname in 
+							<foreach collection="OPTIONNAME" index="i" open="(" separator="," close=")">
+							'${OPTIONNAME[i]}'
+							</foreach>
+							minus
+							select fk_option_idx
+							from room A JOIN roomoption B
+							ON A.roomcode = B.fk_roomcode
+							where roomsido||roomsigungu||roombname like #{SIDO}||#{GUGUN}||#{DONG})
+		 </if>
+		 <if test="ROOMTYPE_NAME != ''">                                   
+			and not exists (select roomtype_idx
+							from roomtype							
+							where roomtype_name in 
+							<foreach collection="ROOMTYPE_NAME" index="i" open="(" separator="," close=")">
+							'${ROOMTYPE_NAME[i]}'
+							</foreach>
+							minus
+							select fk_roomtype_idx
+							from room 
+							where roomsido||roomsigungu||roombname like #{SIDO}||#{GUGUN}||#{DONG}) 
+		  </if>                                  
+		  
+	</select>
+	
+	<select id="getHomeList" parameterType="String" resultType="com.spring.bnb.model.RoomVO">
+		select * from room A join roomType B on A.fk_roomtype_idx = B.roomtype_idx
+		where roomcode = #{roomcode}
+	</select>
+	
+	<select id="getAllHomeList" resultType="com.spring.bnb.model.RoomVO">
+		select * from room A join roomType B on A.fk_roomtype_idx = B.roomtype_idx
+	</select>
+
+</mapper>

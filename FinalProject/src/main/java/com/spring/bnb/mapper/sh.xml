@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===== #28. mapper 기본 설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!-- ===== #29. 루트 엘리먼트 및 네임스페이스 설정하기(이 네임스페이스의 이름은 프로젝트 전체 내에서 반드시 고유해야만 한다.) ===== --> 
+<mapper namespace="sh">
+	
+	<!-- <select id="getMemberList" resultType="com.spring.bnb.model.MemberVO">
+		select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		     , birthday, introduction, memberstatus, profileimg, warncount, regdate, rno
+		from
+		(
+		    select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		         , to_char(birthday,'yyyymmdd') as birthday, introduction, memberstatus, profileimg, warncount, regdate, rownum as rno
+		    from member
+		)v
+		where rno between #{RNO1} and #{RNO2}
+		order by regdate desc
+	</select> -->
+	
+	<select id="getSearchMember" parameterType="HashMap" resultType="com.spring.bnb.model.MemberVO">
+		select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		     , birthday, introduction, memberstatus, profileimg, warncount, regdate, rno
+		from
+		(
+		    select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		         , to_char(birthday,'yyyymmdd') as birthday, introduction, memberstatus, profileimg, warncount, regdate, rownum as rno
+		    from member
+		    where memberstatus = 1
+		    and ${searchType} like '%'|| #{searchWord} ||'%'
+		)v
+		where rno between #{RNO1} and #{RNO2}
+		order by regdate desc
+	</select>
+	
+	<!-- <resultMap type="HashMap" id="memberMap">
+		<result javaType="String" column="username" property="username"/>
+		<result javaType="String" column="userid" property="userid"/>
+		<result javaType="String" column="birthday" property="birthday"/>
+		<result javaType="String" column="gender" property="gender"/>
+		<result javaType="String" column="email" property="email"/>
+		<result javaType="String" column="phone" property="phone"/>
+		<result javaType="String" column="addr" property="addr"/>
+		<result javaType="String" column="detailAddr" property="detailAddr"/>
+		<result javaType="String" column="reservationcode" property="reservationcode"/>
+	</resultMap> -->
+	
+	<select id="getMemberDetail" parameterType="String" resultType="com.spring.bnb.model.MemberVO">
+		select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		    , to_char(birthday,'yyyymmdd') as birthday, introduction, memberstatus, profileimg, warncount, regdate
+		from member
+		where userid = #{userid}
+	</select>
+	
+	<resultMap type="HashMap" id="ReservationMap">
+		<result javaType="String" column="rsvcode" property="rsvcode"/>
+	</resultMap>
+	
+	<select id="getReservation" parameterType="String" resultMap="ReservationMap">
+		select rsvcode
+		from reservation
+		where fk_userid = #{userid}
+	</select>
+	
+	<resultMap type="HashMap" id="couponMap">
+		<result javaType="String" column="fk_cpcode" property="fk_cpcode"/>
+	</resultMap>
+	
+	<select id="getMycoupon" parameterType="String" resultMap="couponMap">
+		select fk_cpcode
+		from mycoupon
+		where fk_userid = #{userid}
+	</select>
+	
+	
+	<!-- <resultMap type="HashMap" id="reportMap">
+		<result javaType="String" column="report_idx" property="report_idx"/>
+		<result javaType="String" column="fk_userid" property="fk_userid"/>
+		<result javaType="String" column="reporttype" property="reporttype"/>
+		<result javaType="String" column="report_content" property="report_content"/>
+		<result javaType="String" column="report_date" property="report_date"/>
+		<result javaType="String" column="report_status" property="report_status"/>
+		<result javaType="String" column="report_subject" property="report_subject"/>
+	</resultMap> -->
+	
+	<select id="getReport" parameterType="HashMap" resultType="com.spring.bnb.model.ReportVO">
+		select report_idx, fk_userid, reporttype, report_content, report_date, report_status, report_subject, rno, commentcount
+		from
+		(
+		    select report_idx, fk_userid, reporttype, report_content, report_date, report_status, report_subject, rownum as rno, commentcount
+		    from
+		    (
+		        select report_idx, fk_userid, reporttype, report_content, report_date, report_status, report_subject, commentcount
+		        from report
+		        order by to_number(report_idx) desc
+		    )v
+		)t
+		where ${searchType} like '%'|| #{searchWord} ||'%' 
+		and rno between #{RNO1} and #{RNO2}
+	</select>
+	
+	<select id="getTotalCountNoSearch" resultType="int">
+		select count(*)
+		from member
+	</select>
+	
+	<select id="getTotalCountWithSearch" parameterType="HashMap" resultType="int">
+		select count(*)
+		from member
+		where ${searchType} like '%'|| #{searchWord} ||'%'
+	</select>
+	
+	<select id="memberlistPaging" parameterType="HashMap" resultType="com.spring.bnb.model.MemberVO">
+	  	select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		     , birthday, introduction, memberstatus, profileimg, warncount, regdate, rno
+		from
+		(
+		    select userid, username, pwd, email, phone, post, addr, detailAddr, gender
+		         , to_char(birthday,'yyyymmdd') as birthday, introduction, memberstatus, profileimg, warncount, regdate, rownum as rno
+		    from member
+		)v
+		where ${searchType} like '%'|| #{searchWord} ||'%' 
+		and RNO between #{STARTRNO} and #{ENDRNO}
+    </select>
+	
+	<!-- <insert id="add" parameterType="com.spring.bnb.model.ReportVO">
+		insert into report(report_idx, fk_userid, reporttype, report_content, report_date, report_status, report_subject)
+		values(REPORT_IDX_SEQ, #{fk_userid}, )
+	</insert> -->
+	
+	<insert id="cpAdd" parameterType="HashMap">
+		insert into coupon(cpcode, cpname, cpexpire, dcmoney)
+		values('C-'||#{randomNo}||CPCODE_SEQ.nextval, #{cpname}, sysdate+365, #{dcmoney})
+	</insert>
+	
+	<insert id="vanAdd" parameterType="HashMap">
+		insert into report(report_idx, fk_userid, reporttype, report_content, report_date, report_status, report_subject)
+		values(REPORT_IDX_SEQ.nextval, #{fk_userid}, #{reporttype}, #{report_content}, sysdate, 0, #{report_subject})
+	</insert>
+	
+	<select id="getTotalCount" parameterType="HashMap" resultType="int">
+		select count(*)
+		from member
+		where memberstatus = 1 and ${searchType} like '%'|| #{searchWord} ||'%'
+	</select>
+	
+	<select id="getTotalCounts" parameterType="HashMap" resultType="int">
+		select count(*)
+		from 
+		(
+		    select report_idx, fk_userid, reporttype, report_content, report_date, report_status, report_subject, rownum as rno
+		    from report
+		)v
+		where ${searchType} like '%'|| #{searchWord} ||'%'
+	</select>
+	
+	<update id="adminDeleteMember" parameterType="String">
+		update member set memberstatus = 0
+		where userid = #{userid}
+	</update>
+	
+	<select id="getReportDetail" parameterType="int" resultType="com.spring.bnb.model.ReportVO">
+		select previousseq, PreviousTitle, Seq, report_subject, username, report_content, nextSeq, nextTitle, fk_userid, viewcnt, report_date, reporttype
+		from
+		(
+		   select lag(r.report_idx) over(order by r.report_idx desc) as previousseq
+		        , lag(r.report_subject) over(order by r.report_idx desc) as PreviousTitle
+		        , r.report_idx as Seq
+		        , r.report_subject
+		        , m.username
+		        , r.fk_userid
+		        , r.viewcnt
+		        , r.report_date
+		        , r.report_content
+		        , r.reporttype
+		        , lead(r.report_idx) over(order by r.report_idx desc) as nextSeq
+		        , lead(r.report_subject) over(order by r.report_idx desc) as nextTitle
+		   from report r join member m
+		   on r.fk_userid = m.userid
+		)v
+		where v.seq = #{report_idx}
+	</select>
+	
+	<update id="upCount">
+		update report set viewcnt = viewcnt + 1
+		where report_idx = #{report_idx}
+	</update>
+	
+	<delete id="deleteReport">
+		delete from report
+		where report_idx = #{report_idx}
+	</delete>
+	
+	<update id="adminWarnMember" parameterType="String">
+		UPDATE member SET warncount = 
+		CASE 
+		    WHEN warncount = 0 
+		       THEN 1
+		    WHEN warncount = 1
+		       THEN 2
+		    WHEN warncount = 2
+		       THEN 3
+		  ELSE  3
+		END
+		where userid = #{userid}
+	</update>
+	
+	<update id="writeEdit" parameterType="HashMap">
+		update report set report_content = #{report_content}, report_subject = #{report_subject}, reporttype = #{reporttype}, report_date = sysdate
+		where report_idx = #{report_idx}
+	</update>
+	
+	<insert id="insertComment" parameterType="HashMap">
+		insert into tblReportComment(report_seq, fk_userid, name, content, regDate, parentSeq)
+		values(report_commentSeq.nextval, #{fk_userid}, #{name}, #{content}, default, #{parentSeq})
+	</insert>
+	
+	<update id="addCommentCount" parameterType="HashMap">
+		update report set commentcount = commentcount + 1
+		where report_idx = #{report_idx}
+	</update>
+	
+	<select id="getComment" parameterType="int" resultType="com.spring.bnb.model.CommentVO">
+		select name, content, regDate
+		from tblReportComment
+		where parentSeq = #{report_idx}
+	</select>
+	
+</mapper>

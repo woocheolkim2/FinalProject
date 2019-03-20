@@ -1,0 +1,78 @@
+@charset "UTF-8";
+.test{
+	border: 1px solid;
+}
+.hostheadermenus{
+	float:left;
+	height:80px;
+	margin-right: 1%;
+}
+.headermenu{
+	float:left;
+	height: 80px;
+	font-weight: bold;
+	padding: 29px 8px;
+	font-size: 14px;
+	margin: 0 8px;
+}
+.headermenuButton{
+	float:right;
+	height: 80px;
+	font-weight: bold;
+	padding: 29px 8px;
+	font-size: 14px;
+	margin: 0 8px;
+}
+
+.headermenu:hover{
+	border-bottom: 3px solid #008489;
+	cursor: pointer;
+}
+.height_maxPer{height:100%;}
+#header{
+	display: block; 
+	border-bottom: 1px solid #efefef;
+	height:80px;
+}
+#headerlogo{
+	width:60px;
+	margin:0;
+	float:left;
+	padding: 15px 24px;
+	cursor: pointer;
+}
+#searchbarDiv{
+	height:100%;
+	float:left;
+	width:40%;
+}
+#searchbar{
+	width:480px;
+	height:48px;
+	border: 1px solid #efefef; 
+	border-radius:3px;
+	margin-top: 16px;
+	margin-left: 10px; 
+	box-shadow: 1px 2px 3px lightgray;
+	display: block;
+}
+#searchbar:hover{
+	box-shadow: 1px 3px 5px lightgray;
+	transition: 1s;
+}
+#searchInput{
+	font-weight: bold;
+	font-size: 13pt;
+	float:left;
+	margin-top: 8px;
+	color:gray;
+	border: none;
+	height:30px;
+	width:420px;
+}
+#logoDiv{
+	width:55px;
+	height:48px;
+	padding: 12px 18px;
+	float:left;
+}

@@ -1,0 +1,132 @@
+@charset "UTF-8";
+@media only screen and (max-width: 600px) {
+  body {
+    background-color: lightblue;
+  }
+}
+html{
+	overflow-x : hidden;
+}
+.test{
+	border: 1px solid;
+}
+.headermenus{
+	float:right;
+	height:80px;
+	margin-right: 1%;
+}
+.headermenu{
+	float:left;
+	height: 80px;
+	font-weight: bold;
+	padding: 29px 8px;
+	font-size: 14px;
+	margin: 0 8px;
+}
+.headermenu:hover{
+	border-bottom: 3px solid gray;
+	cursor: pointer;
+}
+.height_maxPer{height:100%;}
+#header{
+	display: block; 
+	border-bottom: 1px solid #efefef;
+	height:80px;
+}
+#headerlogo{
+	width:80px;
+	padding:0;
+	margin:0;
+	float:left;
+	padding: 24px 42px;
+}
+#searchbarDiv{
+	height:100%;
+	float:left;
+	width:40%;
+}
+#searchbar{
+	width:480px;
+	height:48px;
+	border: 1px solid #efefef; 
+	border-radius:3px;
+	margin-top: 16px;
+	margin-left: 10px; 
+	box-shadow: 1px 2px 3px lightgray;
+	display: block;
+}
+#searchbar:hover{
+	box-shadow: 1px 3px 5px lightgray;
+	transition: 1s;
+}
+#searchInput{
+	font-weight: bold;
+	font-size: 13pt;
+	float:left;
+	margin-top: 8px;
+	color:gray;
+	border: none;
+	height:30px;
+	width:420px;
+}
+#logoDiv{
+	width:55px;
+	height:48px;
+	padding: 12px 18px;
+	float:left;
+}
+.hoverBottomHY{
+	border-bottom: 1px solid lightgray;
+	margin:2%;
+}
+.hoverBottomHY:hover{
+	border-bottom: 1px solid black;
+}
+.profileDrop{
+	margin:0;
+	width: 100%;
+	padding: 5% 3%;
+}
+.profileDrop:hover{
+	background-color: rgba(210,210,210,0.8);
+}
+.resize1>.dropdown-menu{
+	width:300px;
+	position: absolute;
+  	right: 0 !important;
+}
+.test>div{
+	border: 1px solid red;
+}
+.resize2>.dropdown-menu{
+	width: 80px;
+	padding:0;
+}
+.registInput{
+	font-size: 12pt; 
+	margin-top: 2%; 
+	border: 1px solid rightgray;  
+	margin-left:5%;
+	width: 90%; 
+	height: 40px; 
+	border-radius: 10px;
+}
+.registBirthInput{
+	border:solid;
+	overflow:scroll;
+	margin-left: 5%;
+	border: 1px solid lightgray;
+	width:100%;
+	height:40px;
+}
+.passIconHide{
+	display: none;
+	transition: 1s;
+}
+.passIconShow{
+	display: inline;
+	transition: 1s;
+}
+.passIcon{
+	opacity:0.5;
+}

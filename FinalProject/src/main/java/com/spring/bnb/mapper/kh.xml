@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- ===== #28. mapper 기본 설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!-- ===== #29. 루트 엘리먼트 및 네임스페이스 설정하기(이 네임스페이스의 이름은 프로젝트 전체 내에서 반드시 고유해야만 한다.) ===== --> 
+<mapper namespace="kh">
+
+
+	<select id="getOneRoomInfo" resultType="com.spring.bnb.model.RoomVO" parameterType="HashMap">
+		select *
+		from room A 
+		join roomtype B
+		on A.fk_roomtype_idx = B.roomtype_idx
+		join BUILDTYPE_DETAIL C
+		on A.FK_BUILDTYPE_DETAIL_IDX = C.BUILDTYPE_DETAIL_IDX
+		where roomcode = #{roomcode}
+	</select>
+	
+	
+	<select id="getOneHost" parameterType="String" resultType="com.spring.bnb.model.MemberVO">
+		select*
+		from member 
+		where userid = #{fk_userid}
+	</select>
+	
+	
+	<resultMap type="HashMap" id="roomOption">
+		<result column="OPTIONNAME" property="OPTIONNAME" javaType="String" />
+		<result column="OPTIONICON" property="OPTIONICON" javaType="String" />
+	</resultMap>
+	
+	<select id="roomOptionList" parameterType="HashMap" resultMap="roomOption">
+		select OPTIONNAME,OPTIONICON
+		from roomoption B 
+		join options A
+		on B.fk_option_idx = A.option_idx
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	
+	<select id="roomReviewCount" parameterType="HashMap" resultType="com.spring.bnb.model.ReviewVO">
+		select count(*)
+		from review
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	
+	<select id="getReviewCount" parameterType="HashMap" resultType="int">
+		select count(*)
+		from review
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	<select id="getAvgPrice" resultType="int">
+		select avg(ROOMPRICE)
+		from room
+	</select>
+	
+	<!-- 예약코드 생성을 위해 시퀀스 번호 채번해오기  -->
+	<select id="getReservCode" resultType="int">
+		select rsvcode_seq.nextval as seq
+		from dual	
+	</select>
+	
+  <insert id="insertReservation" parameterType="HashMap">
+		insert into RESERVATION (RSVCODE,FK_ROOMCODE,FK_USERID,GUESTCOUNT,BABYCOUNT
+		,RSV_NAME,RSV_PHONE,RSV_EMAIL,RSV_CHECKINDATE,RSV_CHECKOUTDATE,
+		PAYDATE,TOTALPRICE,RSV_MSG,DCPRICE,RSV_CANCLEDATE)
+		values(#{revcode},#{roomcode},#{my_userid},#{guestCount},#{babyCount}
+		,#{username},#{phone},#{email},#{checkin},#{checkout},sysdate,#{totalprice},#{message},'','')
+	</insert> 
+	
+	<!-- <insert id="insertReservation" statementType="CALLABLE" parameterType="HashMap">
+		{call pcd_reservation_insert (#{revcode,mode=IN},
+									  #{roomcode,mode=IN},
+									  #{my_userid,mode=IN},
+									  #{guestCount,mode=IN},
+									  #{babyCount,mode=IN},
+									  #{username,mode=IN},
+									  #{phone,mode=IN},
+									  #{email,mode=IN},
+									  #{checkin,mode=IN},
+									  #{checkout,mode=IN},
+									  #{message,mode=IN},
+									  #{checkin,mode=IN},
+									  #{totalprice,mode=IN})
+		
+		}
+	</insert> -->
+	
+	
+	<select id="getOneReserve" parameterType="HashMap" resultType="com.spring.bnb.model.ReservationVO">
+		select*
+		from reservation
+		where rsvcode= #{revcode} and fk_userid=#{my_userid}
+	</select>
+	
+	<!-- room 규칙 뽑기 -->
+	<resultMap type="HashMap" id="ruleMap">
+		<result column="rule_name" property="rule_name" javaType="String" />
+	</resultMap>
+	
+	<select id="getruleList" parameterType="HashMap" resultMap="ruleMap">
+		select distinct(rule_name)as rule_name
+		from allrule A
+		join roomrule B
+		on a.rule_idx = b.fk_rule_idx
+		where FK_ROOMCODE = #{roomcode}
+	</select>
+	
+	<resultMap type="HashMap" id="mycoupon">
+		<result column="cpname" property="cpname" javaType="String" />
+		<result column="cpexpire" property="cpexpire" javaType="String" />
+		<result column="dcmoney" property="dcmoney" javaType="int" />
+		<result column="USEDATE" property="USEDATE" javaType="String" />
+		<result column="CPCODE" property="CPCODE" javaType="String" />
+	</resultMap>
+	
+	<select id="getmyCoupon" parameterType="String" resultMap="mycoupon">
+		select cpname,to_char(cpexpire,'yyyy/mm/dd')as cpexpire ,dcmoney,USEDATE,CPCODE
+		from coupon A
+		join mycoupon B
+		on A.CPCODE = B.FK_CPCODE
+		where fk_userid = #{userid}
+	</select>
+	
+	<update id="useMyCoupon" parameterType="HashMap">
+		update mycoupon set USEDATE = sysdate
+		where fk_userid = #{userid}
+		and FK_CPCODE = #{code}
+	</update>
+	
+	<update id="NouseMyCoupon" parameterType="HashMap">
+		update mycoupon set USEDATE = ''
+		where fk_userid = #{userid}
+		and FK_CPCODE = #{code}
+	</update>
+	
+	<select id="getUseMyCopon" parameterType="HashMap" resultType="int">
+		select dcmoney
+		from coupon A
+		join mycoupon B
+		on A.CPCODE = B.FK_CPCODE
+		where fk_userid = #{userid} and cpcode = #{code}
+	</select>
+	
+	
+
+</mapper>

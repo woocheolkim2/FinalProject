@@ -1,0 +1,148 @@
+@charset "UTF-8";
+.check{
+   border: 1px solid red;
+}
+.followDiv{
+   position: fixed;
+   top:2%;
+}
+.maxWidth{
+   width:1240px;
+   margin:0;
+   padding:0;
+}
+#detailSubject{
+   font-family: Circular,-apple-system,BlinkMacSystemFont,Roboto,Helvetica Neue,sans-serif;
+    margin: 0px;
+    word-wrap: break-word;
+    font-size: 26px;
+    font-weight: 800;
+}
+.noSpace{
+   padding:0;
+   margin:0;
+}
+.rightborder{
+   border-right: 1px solid lightgray;
+}
+#rsvBtn{
+   width: 90%;
+   margin-left:5%;
+   border: none;
+   height: 40px;
+   background-color: #fd5a61;
+   color: white;
+   font-weight:bold;
+   margin-top: 10%;
+   border-radius: 5px;
+}
+.DetailsInput{
+   border: 1px solid lightgray;
+   height: 40px;
+   border-radius: 3px;
+   width:90%;
+   margin-left:5%;
+   margin-top:2%;
+   padding:3%;
+   text-align: left;
+}
+.infoDiv{
+   margin: 3% 0;
+   border-bottom: 1px solid lightgray;
+   padding-bottom: 3%;
+   margin-right: 5%;
+   padding-right: 4%;
+}
+.mainSubInfo{
+   height:100%;
+   border-right: 1px solid lightgray;
+}
+.DetailButtonsHY{
+   background-color:white;
+   opacity:0.8;
+   position:absolute; 
+   bottom: 3%;
+   right: 18%;
+   width: 9%;
+   border-radius:5px;
+   height: 35px;
+   box-shadow: 1px 1px 3px gray;
+   padding: 7px 18px;
+   font-weight:bold;
+}
+.DetailButtonsHY:hover{
+   opacity:1;
+   cursor:pointer;
+}
+.aTagBtnHY{
+   color:#148487;
+   font-weight:bold;
+   font-size: 1.1em;
+}
+.aTagBtnHY:hover{
+   cursor:pointer;
+   color:#148487;
+}
+.infoSubjectHY{
+   font-weight:bold;
+   font-size:1.2em;
+}
+.infoSubjectHYBig{
+   font-weight:bold;
+   font-size:24px;
+}
+.homeDetailComment{
+   border-bottom: 1px solid #f0f0f0;
+   padding-bottom: 2%;
+   margin: 0 3%;
+}
+.pageBarCircle,.currpageCircle{
+   border:1px solid #148487;
+   border-radius:15px;
+   width:30px;
+   height:30px;
+   padding: 4px 9px;
+   float:left;
+   margin-left:2%;
+   cursor:pointer;
+}
+.pageBarCircle{
+   color:gray;
+}
+.currpageCircle{
+   background-color:#148487;
+}
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: white;
+  overflow: auto;
+  width: 100%;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  right: 0;
+  top: 38px;
+  z-index: 1;
+  border-radius: 3px;
+  border-top: 3px solid #148487;
+}
+.show {display: block;}
+.dropUpDown{
+   background-color:white;
+   border: 1px solid #148487;
+   font-weight:bold;
+   color:#148487;
+   border-radius:17px;
+   width:28px;
+   height:28px;
+}
+.dropsubrow{
+   margin: 2% 0;
+}
+.datepicker .datepicker-switch {
+	width: 250px;
+}

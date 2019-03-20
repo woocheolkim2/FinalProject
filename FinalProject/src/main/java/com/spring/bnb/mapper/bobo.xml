@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!-- ===== 루트 엘리먼트 및 네임스페이스 설정하기(이 네임스페이스의 이름은 프로젝트 전체 내에서 반드시 고유해야만 한다.) ===== --> 
+<mapper namespace="bobo">
+
+   <!-- 숙소유형 가져오기 -->
+   <resultMap type="HashMap" id="roomType">
+        <result property="ROOMTYPE_NAME" column="roomType_name" javaType="String" />
+        <result property="ROOMTYPE_IDX" column="roomType_idx" javaType="int" />
+   </resultMap>
+
+   <select id="selectroomtype" resultMap="roomType">
+      select roomType_name, roomType_idx
+      from roomType
+      order by roomType_idx
+   </select>
+   
+   <!-- 건물유형 가져오기 -->
+   <resultMap type="HashMap" id="bulidmap">
+        <result property="BUILDTYPE" column="buildType" javaType="String" />
+        <result property="BUILDTYPE_IDX" column="buildType_idx" javaType="int" />
+   </resultMap>
+   
+   <select id="selectbuildType" resultMap="bulidmap">
+      select buildType, buildType_idx
+      from buildType
+      order by buildType_idx
+   </select>
+   
+   <!-- 건물세부유형 가져오기 -->
+    <resultMap type="HashMap" id="buildType_detail">
+        <result property="BUILDTYPE_DETAIL_IDX" column="buildType_detail_idx" javaType="String" />
+        <result property="FK_BUILDTYPE_IDX" column="fk_buildType_idx" javaType="String" />
+        <result property="BUILDTYPE_DETAIL_NAME" column="buildType_detail_name" javaType="String" /> 
+   </resultMap>
+   
+    <select id="selectbuildTypedetail" parameterType="String" resultMap="buildType_detail">
+      select buildType_detail_idx, buildType_detail_name
+      from buildType_detail
+      where fk_buildType_idx = #{buildType}
+      order by buildType_detail_idx
+   </select>
+   
+   <!-- 옵션 가져오기 -->
+    <resultMap type="HashMap" id="options">
+        <result property="OPTION_IDX" column="option_idx" javaType="String" />
+        <result property="OPTIONNAME" column="optionName" javaType="String" />
+   </resultMap>
+   
+    <select id="selectoptions" parameterType="String" resultMap="options">
+      select option_idx, optionName
+      from options
+      order by option_idx
+   </select>
+   
+   <!-- 이용규칙 가져오기 -->
+    <resultMap type="HashMap" id="rule">
+        <result property="RULE_IDX" column="rule_idx" javaType="String" />
+        <result property="RULE_NAME" column="rule_name" javaType="String" />
+   </resultMap>
+   
+    <select id="selectrule" parameterType="String" resultMap="rule">
+      select rule_idx, rule_name
+      from allrule
+      order by rule_idx
+   </select>
+   
+   <!-- 숙소 insert -->
+   <insert id="becomehost" parameterType="com.spring.bnb.model.RoomVO"> 
+           insert into room(roomcode, fk_userid, fk_buildType_detail_idx, fk_roomType_idx, roomName, roomMainImg, roomTel, roomInfo, roomPost
+                ,roomSigungu, roomSido, roomBname, roomdetailAddr, roomPrice, peakper, cleanPay, basic_person, max_person
+                ,person_addpay ,roomcount, bathCount, checkInTime, checkOutTime, latitude, longitude, viewcount, roomstatus, room_warnCount) 
+      values('R'||#{fk_roomType_idx}||#{fk_buildType_detail_idx}||roomcode_seq.nextval, #{host.userid}, #{fk_buildType_detail_idx}, #{fk_roomType_idx}
+             ,#{roomName}, #{roomMainImg}, #{roomTel}, #{roomInfo}, #{roomPost}, #{roomSigungu}, #{roomSido}, #{roomBname}, #{roomDetailAddr}, #{roomPrice}
+             ,#{peakper}, #{cleanPay}, #{basic_person}, #{max_person}, #{person_addpay}, #{roomCount}, #{bathCount}, #{checkInTime}, #{checkOutTime}, #{latitude}
+             ,#{longitude}, default, 99, default)
+    </insert>
+ 
+    <!-- 숙소 시퀀스 채번 -->
+    <select id="roomseq" resultType="String">
+      select roomcode_seq.currval from dual
+   </select>
+   
+    <!-- 이미지 insert -->
+    <insert id="insertRoomImgList" parameterType="HashMap">    
+           insert into roomimg(roomimg_idx, fk_roomcode, img)
+      values(roomimg_idx_seq.nextval, 'R'||#{roomType_idx}||#{buildType_detail_idx}||#{roomseq}, #{img})
+    </insert>
+    
+    <!-- 옵션 insert -->
+    <insert id="optioninsert" parameterType="HashMap">
+       insert into roomOption(roomoption_idx, fk_option_idx, fk_roomcode)
+      values(roomoption_idx_sep.nextval, #{option}, 'R'||#{roomType_idx}||#{buildType_detail_idx}||#{roomseq})
+    </insert> 
+    
+    <!-- 규칙 insert -->
+    <insert id="ruleinsert" parameterType="HashMap">
+       insert into roomrule(roomrule_idx, fk_rule_idx, fk_roomcode)
+      values(roomrule_idx_seq.nextval, #{rule}, 'R'||#{roomType_idx}||#{buildType_detail_idx}||#{roomseq})
+    </insert> 
+    
+    <!-- 침실 insert -->
+<!--     <insert id="insertbedroom" parameterType="String">
+      insert into bedroom(bedroom_idx,fk_roomcode) 
+      values(bedroom_idx_seq.nextval,'R'||#{roomType_idx}||#{buildType_detail_idx}||#{roomseq})
+   </insert>
+   
+   <select id="getBedroomIdx" resultType="Integer">
+      select bedroom_idx_seq.currval from dual
+   </select>
+   
+   <insert id="insertbed" parameterType="HashMap">
+      insert into bed(bed_idx,bedCount,fk_bedroom_idx,fk_bedobj_idx) 
+      values(bed_idx_seq.nextval,#{BEDCOUNT},#{BEDROOMIDX},#{BEDOBJIDX})
+   </insert> -->
+
+ 
+   
+   
+   
+</mapper>

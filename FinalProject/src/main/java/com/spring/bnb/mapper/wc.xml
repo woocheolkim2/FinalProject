@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ===== #28. mapper 기본 설정 ===== -->
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!-- ===== #29. 루트 엘리먼트 및 네임스페이스 설정하기(이 네임스페이스의 이름은 프로젝트 전체 내에서 반드시 고유해야만 한다.) ===== --> 
+<mapper namespace="wc">
+
+	<resultMap type="HashMap" id="recommand_room">
+		<result property="ROOMCODE" column="ROOMCODE" javaType="STRING"/>
+		<result property="ROOMNAME" column="ROOMNAME" javaType="STRING"/>
+		<result property="ROOMMAINIMG" column="ROOMMAINIMG" javaType="STRING"/>
+		<result property="ROOMPRICE" column="ROOMPRICE" javaType="STRING"/> 
+	</resultMap>
+	<select id="getAllRoomList" resultMap="recommand_room">
+		select ROOMCODE, ROOMMAINIMG, ROOMNAME, ROOMPRICE
+		    from(
+		       select distinct(roomcode), avg((correct+communicate+clean+position+checkin+value)) AS SCORE, roomname, roomprice, roomMainImg
+		        from room A JOIN review B
+		        on A.roomcode = B.fk_roomcode
+		        join member C
+		        on B.fk_userid = C.userid 
+		        group by roomcode, roomname, roomprice, roomMainImg 
+		    )V
+		where rownum between 1 and 7
+	</select> 
+	<select id="getProfileImg" parameterType="String" resultType="String">
+		select profileImg
+		from member A JOIN room B
+		on A.userid = B.fk_userid
+		where B.roomcode = #{roomCode}
+	</select>
+	<resultMap type="HashMap" id="reviewList">
+		<result property="FK_USERID" column="FK_USERID" 		  	  javaType="String" />
+		<result property="REVIEW_CONTENT" column="REVIEW_CONTENT" 	  javaType="String" />
+		<result property="ROOMNAME" column="ROOMNAME" 	  			  javaType="String" />
+		<result property="REVIEW_WRITEDATE" column="REVIEW_WRITEDATE" javaType="String" />
+		<result property="PROFILEIMG" column="PROFILEIMG" 			  javaType="String" />
+	</resultMap>
+	<select id="getBestReviewList" resultMap="reviewList">
+		select FK_USERID, REVIEW_CONTENT, ROOMNAME, REVIEW_WRITEDATE, PROFILEIMG
+		from 
+		(select A.FK_USERID, REVIEW_CONTENT, ROOMNAME, to_char(REVIEW_WRITEDATE, 'yyyy-mm-dd') as REVIEW_WRITEDATE, PROFILEIMG
+		from review A JOIN room B
+		on A.fk_roomcode = B.roomcode
+		JOIN member C
+		on B.fk_userid = C.userid
+		order by to_date(REVIEW_WRITEDATE,'yyyy-mm-dd hh24:mi:ss') desc
+		)V
+		where rownum between 1 and 2
+	</select> 
+	
+	<resultMap type="HashMap" id="allRoomList">
+		<result property="ROOMCODE"	   column="ROOMCODE"    javaType="String" />
+		<result property="ROOMMAINIMG" column="ROOMMAINIMG" javaType="String" />
+		<result property="ROOMNAME"    column="ROOMNAME"    javaType="String" />
+		<result property="ROOMSIDO"    column="ROOMSIDO"    javaType="String" />
+		<result property="ROOMSIGUNGU" column="ROOMSIGUNGU" javaType="String" />
+		<result property="ROOMBNAME"   column="ROOMBNAME"   javaType="String" />
+		<result property="USERNAME"    column="USERNAME"    javaType="String" />
+		<result property="ROOMPRICE"   column="ROOMPRICE"   javaType="String" />
+		<result property="ROOMSTATUS"  column="ROOMSTATUS"  javaType="String"/>
+	</resultMap>
+	<select id="getWCAllRoomList" resultMap="allRoomList">
+		select ROOMCODE, ROOMMAINIMG, ROOMNAME, ROOMSIDO, ROOMSIGUNGU, ROOMBNAME, USERNAME, ROOMPRICE
+		from room A JOIN member B
+		on A.fk_userid = B.userid
+		where A.ROOMSTATUS = 1
+	</select>
+	<select id="toPermitLodgingList" resultMap="allRoomList">
+		select ROOMCODE, ROOMMAINIMG, ROOMNAME, ROOMSIDO, ROOMSIGUNGU, ROOMBNAME, USERNAME, ROOMPRICE
+		from room A JOIN member B
+		on A.fk_userid = B.userid
+		where A.ROOMSTATUS = 99
+	</select>
+	<select id="getLodgingTotalCountWithSearch" parameterType="HashMap" resultType="int">
+		select count(*)
+		from room
+		where roomstatus = 1
+		and ${COLNAME} like '%'|| #{SEARCH} ||'%' 
+	</select>
+	<select id="getLodgingTotalCountWithSearchBeforePermission">
+		select count(*)
+		from room
+		where roomstatus = 99
+		and ${COLNAME} like '%'|| #{SEARCH} ||'%' 
+	</select>
+	
+	<select id="getLodgingTotalCountNoSearch" resultType="int">
+		select count(*)
+		from room
+		where roomstatus = 1 
+	</select> 
+	
+	<select id="lodgingListPaging" parameterType="HashMap" resultMap="allRoomList">
+		select ROOMCODE,ROOMMAINIMG, ROOMNAME, ROOMSIDO, ROOMSIGUNGU, ROOMBNAME, USERNAME, ROOMPRICE, RNO, ROOMSTATUS
+		from(
+			select ROOMCODE,ROOMMAINIMG, ROOMNAME, ROOMSIDO, ROOMSIGUNGU, ROOMBNAME, USERNAME, ROOMPRICE, ROOMSTATUS ,ROWNUM AS RNO
+			from(
+			    select ROOMCODE, ROOMMAINIMG, ROOMNAME, ROOMSIDO, ROOMSIGUNGU, ROOMBNAME, USERNAME, ROOMPRICE, ROOMSTATUS
+			    from room A JOIN member B
+			    on A.fk_userid = B.userid
+			    where ROOMSTATUS in (0,1)
+			    <if test='SEARCH != null and SEARCH != "" and SEARCH != "null" and !COLNAME.equalsIgnoreCase("LOCATION") '>
+			    and ${COLNAME} like '%'||#{SEARCH}||'%'
+			    </if>
+			    <if test='SEARCH != null and SEARCH != "" and SEARCH != "null" and COLNAME.equalsIgnoreCase("LOCATION") '>
+			    and (ROOMSIDO like '%'||#{SEARCH}||'%' or ROOMSIGUNGU like '%'||#{SEARCH}||'%' or ROOMBNAME like '%'||#{SEARCH}||'%')
+			    </if>
+			    order by ROOMCODE desc
+			)
+		) 
+		where RNO between #{STARTRNO} and #{ENDRNO} 
+	</select>
+	
+	<update id="deleteRoomByRoomcode" parameterType="String">
+		update room set roomstatus = 0
+		where roomcode = #{_parameter}
+	</update>
+	 
+	<update id="continueRoomByRoomcode" parameterType="String">
+		update room set roomstatus = 1
+		where roomcode = #{_parameter}
+	</update> 
+	
+</mapper>

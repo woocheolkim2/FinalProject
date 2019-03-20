@@ -1,0 +1,423 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+
+<mapper namespace="cso">
+
+
+<select id="getTotalCount" parameterType="String" resultType="int">
+	select count(*)
+	from
+	(
+		select nvl(to_char(usedate,'yyyy-mm-dd'),-99) AS usedate
+		from mycoupon
+		where fk_userid = #{userid}
+	)
+	where usedate like '%'||'-99'||'%'
+</select>
+
+<select id="getUseTotalCount" parameterType="String" resultType="int">
+	select count(*)
+	from
+	(
+		select nvl(to_char(usedate,'yyyy-mm-dd'),-99) AS usedate
+		from mycoupon
+		where fk_userid = #{userid}
+	)
+	where not usedate = '-99'
+</select>
+<resultMap type="HashMap" id="getMyCouponList">
+	<!-- <result property="mycp_idx" column="mycp_idx" javaType="String" /> -->
+	<result property="cpcode" column="cpcode" javaType="String" />
+	<result property="userid" column="fk_userid" javaType="String" />
+	<result property="dcmoney" column="dcmoney" javaType="String" />
+	<result property="cpexpire" column="cpexpire" javaType="String" />
+	<result property="cpname" column="cpname" javaType="String" />
+	<result property="usedate" column="usedate" javaType="String" />
+</resultMap>
+
+<select id="getMyCoupon" parameterType="String" resultMap="getMyCouponList">
+    
+    select rnum, mycp_idx,cpcode,cpname,cpexpire,dcmoney,userid,usedate
+    from
+    (    
+    select rownum AS rnum, mycp_idx,fk_cpcode AS cpcode,cpname,cpexpire,dcmoney,fk_userid as userid,usedate
+    from
+        (
+        select mycp_idx,fk_cpcode,cpname,cpexpire,dcmoney,fk_userid,nvl(to_char(usedate,'yyyy-mm-dd'),-9999) AS usedate
+		from myCoupon A join coupon B
+		on A.fk_cpcode = B.cpcode
+		where fk_userid= #{userid}
+        order by cpexpire
+        )V
+         where usedate = '-9999'
+    )F
+   where rnum between #{startRno} and #{endRno} 
+</select>
+
+<resultMap type="HashMap" id="getMyUserMap">
+	<result property="cpcode" column="cpcode" javaType="String" />
+	<result property="dcmoney" column="dcmoney" javaType="String" />
+	<result property="cpexpire" column="cpexpire" javaType="String" />
+	<result property="cpname" column="cpname" javaType="String" />
+	<result property="usedate" column="usedate" javaType="String" />
+</resultMap>
+<select id="getMyUseCoupon" parameterType="HashMap" resultMap="getMyUserMap">
+    select rnum,cpcode,cpname,cpexpire,dcmoney,usedate
+    from
+    (    
+    select rownum AS rnum, mycp_idx,fk_cpcode AS cpcode,cpname,cpexpire,dcmoney,fk_userid,usedate
+    from
+        (
+        select mycp_idx,fk_cpcode,cpname,cpexpire,dcmoney,fk_userid,nvl(to_char(usedate,'yyyy-mm-dd'),-9999) AS usedate
+		from myCoupon A join coupon B
+		on A.fk_cpcode = B.cpcode
+		where fk_userid= #{userid}
+        order by cpexpire
+        )V
+         where not usedate = '-9999'
+    )F
+     where rnum between #{startRno} and #{endRno}  
+</select>
+<select id="getMyInfo" parameterType="String" resultType="com.spring.bnb.model.MemberVO">
+
+	select userid,username,pwd,email,phone,post,addr,detailaddr
+        ,gender,to_char(birthday,'yyyy-mm-dd') AS birthday,introduction,memberstatus,profileimg,warncount,regdate
+	from member
+	where memberstatus =1 and userid = #{loginuser}
+</select>
+<select id="getTotalHostReviewCount" parameterType="String" resultType="int">
+	select count(*)
+    from review A join room B
+    on A.fk_roomcode = B.roomcode
+    where B.fk_userid=#{userid}
+</select>
+<resultMap type="HashMap" id="resList">
+	<result column="rsvcode" property="rsvcode" javaType="String"/>
+	<result column="username" property="username" javaType="String"/>
+	<result column="email" property="email" javaType="String"/>
+	<result column="phone" property="phone" javaType="String"/>
+	<result column="roomcode" property="roomcode" javaType="String"/>
+	<result column="rsv_checkindate" property="rsv_checkindate" javaType="String"/>
+	<result column="checkInDay" property="checkInDay" javaType="String"/>
+	<result column="rsv_checkoutdate" property="rsv_checkoutdate" javaType="String"/>
+	<result column="checkOutDay" property="checkOutDay" javaType="String"/>
+	<result column="paydate" property="paydate" javaType="String"/>
+	<result column="rsv_cancledate" property="rsv_cancledate" javaType="String"/>
+	<result column="roomname" property="roomname" javaType="String"/>
+	<result column="roommainimg" property="roommainimg" javaType="String"/>
+	<result column="roomtel" property="roomtel" javaType="String"/>
+	<result column="roompost" property="roompost" javaType="String"/>
+	<result column="roomsigungu" property="roomsigungu" javaType="String"/>
+	<result column="roomsido" property="roomsido" javaType="String"/>
+	<result column="roombname" property="roombname" javaType="String"/>
+	<result column="roomdetailaddr" property="roomdetailaddr" javaType="String"/>
+	<result column="latitude" property="latitude" javaType="String"/>
+	<result column="longitude" property="longitude" javaType="String"/>
+	<result column="checkOutMM" property="checkOutMM" javaType="String"/>
+	<result column="checkOutYY" property="checkOutYY" javaType="String"/>
+	<result column="checkOutDD" property="checkOutDD" javaType="String"/>
+	<result column="checkInMM" property="checkInMM" javaType="String"/>
+	<result column="checkInYY" property="checkInYY" javaType="String"/>
+	<result column="checkInDD" property="checkInDD" javaType="String"/>
+	<result column="flag" property="flag" javaType="String"/>
+	<result column="dat" property="dat" javaType="String"/>
+</resultMap>
+<select id="getMemberReservationList" parameterType="String" resultMap="resList">
+    select B.rsvcode ,A.userid AS userid, username, email, phone, C.roomcode AS roomcode,
+           to_char(rsv_checkindate,'yyyy-mm-dd') as rsv_checkindate,
+           substr(rsv_checkindate,7,2) AS checkInDD,
+           substr(rsv_checkindate,0,2) AS checkInYY,
+           substr(rsv_checkindate,4,2) AS checkInMM,
+           substr(rsv_checkoutdate,7,2) AS checkOutDD,
+           substr(rsv_checkoutdate,0,2) AS checkOutYY,
+           substr(rsv_checkoutdate,4,2) AS checkOutMM,
+           to_char(rsv_checkindate, 'DAY' ) AS checkInDay,
+	       to_char(rsv_checkoutdate,'yyyy-mm-dd') as rsv_checkoutdate,
+	       to_char(rsv_checkoutdate, 'DAY' ) AS checkOutDay,
+	       to_char(paydate,'yyyy-mm-dd') as paydate,
+	       to_char(rsv_cancledate,'yyyy-mm-dd') AS rsv_cancledate
+	       ,roomname ,roommainimg, roomtel
+	       ,roompost, roomsigungu, roomsido, roombname,roomdetailaddr,latitude,longitude
+	       ,case when rsv_checkindate > sysdate then 1 else 2 end AS flag
+           ,(to_date(rsv_checkoutdate,'yyyy-mm-dd') - to_date(rsv_checkindate,'yyyy-mm-dd')) AS dat
+	from member A right join reservation B
+	      on A.userid = B.fk_userid
+	      join room C
+          on B.fk_roomcode = C.roomcode
+         left join roomtype D
+          on C.fk_roomtype_idx = D.roomtype_idx
+          left join BUILDTYPE_DETAIL E
+          on C.fk_buildType_detail_idx = e.buildtype_detail_idx
+         left join BUILDTYPE F
+          on F.BUILDTYPE_IDX = E.FK_BUILDTYPE_IDX 
+    where A.userid = #{loginuser}
+</select> 
+
+
+<resultMap type="HashMap" id="resDetail">
+	<result column="username" property="username" javaType="String"/>
+	<result column="email" property="email" javaType="String"/>
+	<result column="phone" property="phone" javaType="String"/>
+	<result column="rsvcode" property="rsvcode" javaType="String"/>
+	<result column="rsv_phone" property="rsv_phone" javaType="String"/>
+	<result column="rsv_email" property="rsv_email" javaType="String"/>
+	<result column="rsv_msg" property="rsv_msg" javaType="String"/>
+	<result column="roomcode" property="roomcode" javaType="String"/>
+	<result column="guestcount" property="guestcount" javaType="String"/>
+	<result column="rsv_checkindate" property="rsv_checkindate" javaType="String"/>
+	<result column="checkInDay" property="checkInDay" javaType="String"/>
+	<result column="rsv_checkoutdate" property="rsv_checkoutdate" javaType="String"/>
+	<result column="checkOutDay" property="checkOutDay" javaType="String"/>
+	<result column="dat" property="dat" javaType="String"/>
+	<result column="rsv_name" property="rsv_name" javaType="String"/>
+	<result column="paydate" property="paydate" javaType="String"/>
+	<result column="totalprice" property="totalprice" javaType="String"/>
+	<result column="dcprice" property="dcprice" javaType="String"/>
+	<result column="roomprice" property="roomprice" javaType="String"/>
+	<result column="rsv_cancledate" property="rsv_cancledate" javaType="String"/>
+	<result column="roomname" property="roomname" javaType="String"/>
+	<result column="roommainimg" property="roommainimg" javaType="String"/>
+	<result column="roompost" property="roompost" javaType="String"/>
+	<result column="roomsigungu" property="roomsigungu" javaType="String"/>
+	<result column="roomsido" property="roomsido" javaType="String"/>
+	<result column="roombname" property="roombname" javaType="String"/>
+	<result column="roomcount" property="roomcount" javaType="String"/>
+	<result column="latitude" property="latitude" javaType="String"/>
+	<result column="longitude" property="longitude" javaType="String"/>
+	<result column="roominfo" property="roominfo" javaType="String"/>
+	<result column="roomdetailaddr" property="roomdetailaddr" javaType="String"/>
+	<result column="roomtel" property="roomtel" javaType="String"/>
+	<result column="roomdetailaddr" property="roomdetailaddr" javaType="String"/>
+	<result column="roomtype_name" property="roomtype_name" javaType="String"/>
+	<result column="checkInDD" property="checkInDD" javaType="String"/>	
+	<result column="checkInMM" property="checkInMM" javaType="String"/>	
+	<result column="checkInYY" property="checkInYY" javaType="String"/>
+    <result column="checkOutDD" property="checkOutDD" javaType="String"/>	
+	<result column="checkOutMM" property="checkOutMM" javaType="String"/>	
+	<result column="checkOutYY" property="checkOutYY" javaType="String"/>
+	<result column="cleanpay" property="cleanpay" javaType="String"/>
+	<result column="flag" property="flag" javaType="String"/>
+	<result column="servicePrice" property="servicePrice" javaType="String"/>
+	<result column="daysRemaining" property="daysRemaining" javaType="String"/>
+</resultMap>
+
+<select id="getMemberReservationDetail" parameterType="HashMap" resultMap="resDetail">
+          
+  select A.userid AS userid, username, email, phone, B.rsvcode AS rsvcode, C.roomcode AS roomcode
+		   ,basic_person, guestcount ,babycount,rsv_name,rsv_phone,rsv_email,		   
+           to_char(rsv_checkindate,'yyyy-mm-dd') as rsv_checkindate,
+           substr(rsv_checkindate,7,2) AS checkInDD,
+           substr(rsv_checkindate,0,2) AS checkInYY,
+           substr(rsv_checkindate,4,2) AS checkInMM,
+           substr(rsv_checkoutdate,7,2) AS checkOutDD,
+           substr(rsv_checkoutdate,0,2) AS checkOutYY,
+           substr(rsv_checkoutdate,4,2) AS checkOutMM,
+           to_char(rsv_checkindate, 'DAY' ) AS checkInDay,
+	       to_char(rsv_checkoutdate,'yyyy-mm-dd') as rsv_checkoutdate,
+	       to_char(rsv_checkoutdate, 'DAY' ) AS checkOutDay,
+	       to_char(paydate,'yyyy-mm-dd') as paydate,
+	       to_char(rsv_cancledate,'yyyy-mm-dd') AS rsv_cancledate
+	       ,totalprice, dcprice, cleanpay,roomprice,roomprice*0.1 AS servicePrice, fk_roomtype_idx,roomname ,roommainimg, roomtel
+	       ,roompost, roomsigungu, roomsido, roombname,roomdetailaddr,latitude,longitude
+	       ,rsv_msg,roomcount,bathcount
+           ,roomtype_name
+           ,case when rsv_checkindate > sysdate then 1 else 2 end AS flag
+           ,(to_date(rsv_checkoutdate,'yyyy-mm-dd') - to_date(rsv_checkindate,'yyyy-mm-dd')) AS dat
+           ,trunc(rsv_checkindate - sysdate) as daysRemaining 
+	from member A join reservation B
+	      on A.userid = B.fk_userid
+	      join room C
+          on B.fk_roomcode = C.roomcode
+         left join roomtype D
+          on C.fk_roomtype_idx = D.roomtype_idx
+    where A.userid = #{userid} and rsvcode= #{rsvcode}
+</select> 
+<resultMap type="HashMap" id="getMapHashMap">
+<result column="rsvcode" property="rsvcode" javaType="String"/>
+<result column="fk_roomcode" property="roomcode" javaType="String"/>
+<result column="latitude" property="latitude" javaType="String"/>
+<result column="longitude" property="longitude" javaType="String"/>
+<result column="roomname" property="roomname" javaType="String"/>
+<result column="roomsido" property="roomsido" javaType="String"/>
+<result column="roomsigungu" property="roomsigungu" javaType="String"/>
+<result column="roombname" property="roombname" javaType="String"/>
+
+</resultMap>
+<select id="getMap" parameterType="String" resultMap="getMapHashMap">
+	select A.rsvcode,A.fk_roomcode,A.fk_userid,latitude,longitude,roomname,roomsido,roomsigungu,roombname
+	from reservation A join room B
+	on A.fk_roomcode = B.roomcode
+	where A.rsvcode like #{rsvcode} and A.fk_userid like #{userid}
+</select>
+
+<resultMap type="HashMap" id="myReviewHashMap">
+	<result column="review_idx" property="review_idx" javaType="int"/>
+	<result column="roomcode" property="roomcode" javaType="String"/>
+	<result column="fk_userid" property="host_userid" javaType="String"/>
+	<result column="correct" property="correct" javaType="int"/>
+	<result column="communicate" property="communicate" javaType="int"/>
+	<result column="clean" property="clean" javaType="int"/>
+	<result column="position" property="position" javaType="int"/>
+	<result column="checkin" property="checkin" javaType="int"/>
+	<result column="value" property="value" javaType="int"/>
+	<result column="review_content" property="review_content" javaType="String"/>
+	<result column="hostanswer" property="hostAnswer" javaType="String"/>
+	<result column="roomname" property="roomname" javaType="String"/>
+	<result column="review_writedate" property="review_writedate" javaType="String"/>
+</resultMap>
+<select id="getMyReview" parameterType="String" resultMap="myReviewHashMap">
+
+		select A.review_idx,B.roomname,B.roomcode,B.fk_userid AS host_userid,A.correct,
+				A.communicate,A.clean,A.position,A.checkin,A.value
+				,A.review_content,A.hostanswer,to_char(A.review_writedate,'yyyy-mm-dd') AS review_writedate
+				
+		from review A join room B
+		on B.roomcode = A.fk_roomcode
+		where A.fk_userid = #{userid}
+		order by review_idx desc
+</select>
+
+<resultMap type="HashMap" id="hostReviewMap">
+	<result column="review_idx" property="review_idx" javaType="int"/>
+	<result column="host_userid" property="host_userid" javaType="String"/>
+	<result column="write_userid" property="write_userid" javaType="String"/>
+	<result column="correct" property="correct" javaType="int"/>
+	<result column="communicate" property="communicate" javaType="int"/>
+	<result column="clean" property="clean" javaType="int"/>
+	<result column="position" property="position" javaType="int"/>
+	<result column="checkin" property="checkin" javaType="int"/>
+	<result column="value" property="value" javaType="int"/>
+	<result column="review_content" property="review_content" javaType="String"/>
+	<result column="hostanswer" property="hostAnswer" javaType="String"/>
+	<result column="roomname" property="roomname" javaType="String"/>
+	<result column="review_writedate" property="review_writedate" javaType="String"/>
+	<result column="AVG" property="AVG" javaType="String"/>
+</resultMap>
+<select id="hostReview" parameterType="String" resultMap="hostReviewMap">
+    select rnum,review_idx,roomname,roomcode,host_userid,write_userid,correct,communicate,clean,position,checkin,value
+		,review_content,hostanswer,review_writedate,AVG
+    from
+    (
+    select rownum AS rnum,review_idx,roomname,roomcode,host_userid,write_userid,correct,communicate,clean,position,checkin,value
+		,review_content,hostanswer,review_writedate,AVG
+		from
+		(
+			select A.review_idx,B.roomname,B.roomcode,A.fk_userid AS write_userid,B.fk_userid AS host_userid,A.correct,
+			A.communicate,A.clean,A.position,A.checkin,A.value
+			,A.review_content,A.hostanswer,to_char(A.review_writedate,'yyyy-mm-dd') AS review_writedate
+			, trunc((correct+communicate+clean+position+checkin+value)/6,1) as AVG
+			from review A join room B
+			on B.roomcode = A.fk_roomcode
+            order by review_idx desc
+		)V
+		where host_userid = #{userid}		
+    )
+    where rnum between #{startRno} and #{endRno}
+    order by rnum asc
+</select>
+
+<!-- 나의 정보 수정 -->
+<update id="memberUpdate" parameterType="com.spring.bnb.model.MemberVO">
+	update member set email=#{email}, phone=#{phone}, post=#{post}, addr= #{addr}, detailaddr=#{detailAddr}, introduction=#{introduction}, profileimg=#{profileimg}
+	where userid=#{userid}
+</update>
+
+<insert id="addCoupon" parameterType="HashMap"> 	
+ 	insert into mycoupon(mycp_idx,fk_cpcode,fk_userid)
+ 	values(mycp_idx_seq.nextval,#{coupon},#{userid})
+</insert>
+
+
+<select id="getCoupon" parameterType="String" resultType="int">
+	select count(*) AS cpcode
+ 	from coupon
+ 	where cpcode =#{cpcode}
+</select>
+
+<resultMap type="HashMap" id="myRsvcodeList">
+<result column="rsvcode" property="rsvcode" javaType="String"/>
+<result column="rsv_checkindate" property="rsv_checkindate" javaType="String"/>
+<result column="rsv_checkoutdate" property="rsv_checkoutdate" javaType="String"/>
+<result column="roomname" property="roomname" javaType="String"/>
+<result column="roomcode" property="roomcode" javaType="String"/>
+</resultMap>
+<select id="getMyRsvCode" parameterType="String" resultMap="myRsvcodeList">
+select rsvcode,V.fk_userid,rsv_checkindate,rsv_checkoutdate,roomname,B.roomcode,rsv_cancledate
+from
+(
+	select rsvcode,fk_userid,to_char(rsv_checkindate,'yyyy-mm-dd') AS rsv_checkindate,to_char(rsv_checkoutdate,'yyyy-mm-dd') AS rsv_checkoutdate,fk_roomcode,
+           nvl(to_char(rsv_cancledate,'yyyy-mm-dd'),-9999) AS rsv_cancledate
+	from reservation
+	where fk_userid = #{userid} and not fk_roomcode in (select fk_roomcode from review where fk_userid=#{userid}) 
+)V left join room B
+on V.fk_roomcode = B.roomcode
+where rsv_cancledate = '-9999'
+order by rsvcode desc
+			
+</select>
+
+<update id="goCancelMyRsv" parameterType="HashMap" >
+	update reservation set rsv_cancledate = sysdate
+  	where fk_userid = #{userid} and rsvcode = #{rsvcode}	
+</update>
+
+
+<resultMap type="HashMap" id="getBedMap">
+<result column="bedcount" property="bedcount" javaType="String"/>
+<result column="fk_roomcode" property="fk_roomcode" javaType="String"/>
+<result column="bedtype" property="bedtype" javaType="String"/>
+</resultMap>
+<select id="getBedType" parameterType="String" resultMap="getBedMap">
+    select bedcount,fk_roomcode,bedtype
+    from view_bedtype
+    where fk_roomcode = #{roomcode}
+</select>
+
+<resultMap type="HashMap" id="buildTypeMap">
+<result property="buildtype_detail_name" column="buildtype_detail_name" javaType="String"/>
+<result property="buildtype" column="buildtype" javaType="String"/>
+</resultMap>
+
+<select id="getBuildType" parameterType="String" resultMap="buildTypeMap">
+	select buildtype_detail_name,buildtype
+    from BUILDTYPE_DETAIL A join BUILDTYPE B
+    on B.BUILDTYPE_IDX = A.FK_BUILDTYPE_IDX
+    right join room C
+    on C.FK_BUILDTYPE_DETAIL_IDX = A.BUILDTYPE_DETAIL_IDX
+    where roomcode = #{roomcode}
+</select>
+
+<resultMap type="HashMap" id="reservationListMap">
+	<result column="rsvcode" property="rsvcode" javaType="String"/>
+	<result column="fk_roomcode" property="fk_roomcode" javaType="String"/>
+	<result column="rsv_cancledate" property="rsv_cancledate" javaType="String"/>
+	<result column="flag" property="flag" javaType="String"/>
+	<result column="rsv_checkindate" property="rsv_checkindate" javaType="String"/>
+	<result column="rsv_name" property="rsv_name" javaType="String"/>
+	<result column="rsv_email" property="rsv_email" javaType="String"/>
+</resultMap>
+<select id="getReservationList" resultMap="reservationListMap">
+  select rsvcode,rsv_name,fk_roomcode,rsv_email,rsv_cancledate,fk_userid,flag
+           ,rsv_checkindate
+    from
+    (
+    select rsvcode,rsv_name,fk_roomcode,rsv_email,rsv_cancledate,fk_userid,case when flag = 5 then 1 else 0 end AS flag
+               ,rsv_checkindate
+    from 
+    (
+        select rsvcode,rsv_name,rsv_email,fk_roomcode,nvl(to_char(rsv_cancledate,'yyyy-mm-dd'),-9999) AS rsv_cancledate,fk_userid,trunc(to_date(rsv_checkindate)-sysdate) AS flag
+               ,rsv_checkindate
+        from reservation
+    )where rsv_cancledate = '-9999' 
+    )
+    where flag = 1
+    
+</select>
+
+<select id="getCheckPhone" parameterType="String" resultType="int">
+	select count (*)
+    from member
+    where phone = #{phone}
+</select>
+</mapper>	

@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
+<!-- ===== #29. 루트 엘리먼트 및 네임스페이스 설정하기(이 네임스페이스의 이름은 프로젝트 전체 내에서 반드시 고유해야만 한다.) ===== --> 
+<mapper namespace="sc">
+	<select id="getRoomList" parameterType="String" resultType="com.spring.bnb.model.RoomVO">
+		select roomcode, roomName, roomMainImg, roomstatus, roomInfo 
+		from member M join room R on m.userid = r.fk_userid
+		where userid= #{userid}
+		order by roomcode
+	</select>
+	
+	<select id="getRoomInfo" parameterType="String" resultType="com.spring.bnb.model.RoomVO">
+		select roomcode, roomName, roomMainImg, roomstatus, roomInfo, roomCount, bathCount, max_person, basic_person
+				, fk_roomType_idx, fk_buildType_detail_idx, roomType_name, buildType, buildType_detail_name, nvl(bedcount, 0) as bedCount, nvl(bedtype,'없음') as bedtype, buildtype_idx
+		from room R join roomtype RT on r.fk_roomtype_idx = rt.roomtype_idx 
+		            join buildtype_detail BD on r.fk_buildtype_detail_idx = BD.buildtype_detail_idx 
+		            join buildtype B on bd.fk_buildtype_idx = b.buildtype_idx
+		            left join bedroom BR on r.roomcode = br.fk_roomcode
+		            left join bed BED on br.bedroom_idx = bed.fk_bedroom_idx
+		            left join bedobj BO on bed.fk_bedobj_idx = bo.bedobj_idx
+		where roomcode = #{roomcode}
+		
+	</select>
+
+	<select id="getBuildType_detail" parameterType="String" resultType="String" >
+		select buildType_detail_name
+		from buildtype b join buildtype_detail bd on b.buildtype_idx = bd.fk_buildtype_idx
+		where buildtype_detail_idx = #{buildType_detail_idx}
+	</select>
+	
+	
+	<resultMap type="HashMap" id="roomImgList">
+		<result property="roomImgList" column="img" javaType="String"/>
+	</resultMap>
+	
+	<select id="getRoomImgList" parameterType="String" resultMap="roomImgList">
+		select img
+		from roomimg
+		where fk_roomcode = #{roomcode}
+		order by roomimg_idx
+	</select>
+	
+	<resultMap type="HashMap" id="optionList">
+		<result property="optionname" column="optionname" javaType="String"/>
+		<result property="optionicon" column="optionicon" javaType="String"/>
+		<result property="option_idx" column="option_idx" javaType="String"/>
+	</resultMap>
+	
+	<select id="getRoomOptionList" parameterType="String" resultMap="optionList">
+		select optionname, optionicon, option_idx
+		from roomoption ro join options o on option_idx = fk_option_idx
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	<resultMap type="HashMap" id="ruleList">
+		<result property="rule_name" column="rule_name" javaType="String"/>
+		<result property="fk_rule_idx" column="fk_rule_idx" javaType="String"/>
+	</resultMap>
+	
+	<select id="getRoomRuleList" parameterType="String" resultMap="ruleList">
+		select fk_rule_idx, rule_name
+		from roomrule r join allrule a on a.rule_idx = r.fk_rule_idx
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	<insert id="setRoomImg" parameterType="HashMap">
+		insert into roomImg(roomImg_idx, fk_roomcode, img)
+		values(roomimg_idx_seq.nextval, #{roomcode}, #{newFilename})
+	</insert>
+	
+	<delete id="deleteFile" parameterType="String">
+		delete roomimg
+		where img = #{deleteFilename}
+	</delete>
+	
+	
+	<update id="updateCoverImg" parameterType="HashMap">
+		update room set roommainImg = #{changeImg}
+		where roomcode = #{roomcode}
+	</update>
+	
+	<select id="roomnameSearch" parameterType="HashMap" resultType="com.spring.bnb.model.RoomVO">
+		select roomcode, roomName, roomMainImg, roomstatus, roomInfo 
+		from member M join room R on m.userid = r.fk_userid
+		where userid= #{userid} and roomName like '%'||#{searchWord}||'%'
+		order by roomcode
+	</select>
+	
+	<select id="getReview" parameterType="String" resultType="com.spring.bnb.model.ReviewVO">
+		select review_idx, fk_roomcode,  fk_userid,  correct,  communicate,  clean, position,  checkin,  value,  review_content,  review_writedate,  hostAnswer
+		from review
+		where fk_roomcode = #{roomcode}
+	</select>
+	
+	<resultMap type="HashMap" id="gradeCount">
+		<result property="gradeCount" column="grade" javaType="String"/>
+	</resultMap>
+	<select id="getGradecount" parameterType="HashMap" resultMap="gradeCount">
+		select count(*) as grade
+		from(
+			select round(sum(correct+communicate+clean+position+checkin+value)/(6*2)) as sumReview ,fk_roomcode
+			from review 
+			group by grouping sets((review_idx,fk_roomcode))
+		)
+		where fk_roomcode=#{roomcode} and sumReview = #{garde}	
+		<!-- <choose>
+			<when test='grade == "1"'>
+				and sumReview <![CDATA[<=]]> #{garde}	
+			</when>
+			<otherwise>
+				
+			</otherwise>
+		</choose> -->
+	</select>
+	
+	<select id="allReservation" parameterType="HashMap" resultType="int">
+		select sum(r.totalprice)
+		from room U join reservation R on roomcode = fk_roomcode
+		where U.fk_userid = #{userid} and to_char(paydate, 'yyyy') = #{year} 
+	</select>
+	
+	<select id="monthReservation" parameterType="HashMap" resultType="int">
+		select nvl(sum(r.totalprice),0) as sumReservation
+		from room U join reservation R on roomcode = fk_roomcode
+		where U.fk_userid = #{userid} and to_char(paydate, 'yyyy') = #{year} and to_char(paydate, 'mm') = to_number(#{month})
+	</select>
+	
+	
+	<resultMap type="HashMap" id="countMap">
+		<result property="reservationCount" column="reservationCount" javaType="String"/> 
+		<result property="roomcode" column="roomcode" javaType="String"/> 
+		<result property="viewCount" column="viewcount" javaType="String"/>
+	</resultMap>
+	<select id="getViewAndReservationCount" parameterType="String" resultMap="countMap">
+		select (select count(*) as reservationCount
+	        from room U join reservation R on roomcode = fk_roomcode
+	        where  u.roomcode = #{roomcode} and to_char(paydate, 'yyyy-mm') = to_char(add_months(sysdate,-1), 'yyyy-mm') )as reservationCount
+	        , roomcode, viewcount
+		from room 
+		where roomcode = #{roomcode}
+	</select>
+	
+	<update id="changeRoomtitle" parameterType="HashMap">
+		update room set roomName = #{roomname}, roomInfo = #{roomInfo}
+		where roomcode = #{roomcode}
+	</update>
+	
+	   <!-- 건물유형 가져오기 -->
+   	<resultMap type="HashMap" id="bulidmap">
+        <result property="buildtype" column="buildType" javaType="String" />
+        <result property="buildtype_idx" column="buildType_idx" javaType="int" />
+   	</resultMap>
+   
+   	<select id="selectbuildType" resultMap="bulidmap">
+      select buildType, buildType_idx
+      from buildType
+      order by buildType_idx
+   	</select>
+
+	<!-- 건물세부유형 가져오기 -->
+    <resultMap type="HashMap" id="buildType_detail">
+        <result property="buildtype_detail_idx" column="buildType_detail_idx" javaType="String" />
+        <result property="buildtype_detail_name" column="buildType_detail_name" javaType="String" /> 
+	</resultMap>
+   
+    <select id="selectbuildTypedetail" parameterType="String" resultMap="buildType_detail">
+		select buildType_detail_idx, buildType_detail_name
+      	from buildType_detail
+      	where fk_buildType_idx = #{buildType}
+      	order by buildType_detail_idx
+   	</select>
+    <!-- 숙소유형 가져오기 -->
+   	<resultMap type="HashMap" id="roomType">
+	    <result property="roomtype_name" column="roomType_name" javaType="String" />
+        <result property="roomtype_idx" column="roomType_idx" javaType="String" />
+   	</resultMap>
+
+   	<select id="selectroomtype" resultMap="roomType">
+      	select roomType_name, roomType_idx
+      	from roomType
+		order by roomType_idx
+   	</select>
+   
+	<update id="roomUpdate" parameterType="HashMap">
+		update room set fk_buildType_detail_idx = to_number(#{fk_buildType_detail_idx}), fk_roomType_idx = to_number(#{fk_roomType_idx}), basic_person = to_number(#{basic_person})
+						, max_person = to_number(#{max_person}), roomCount = to_number(#{roomCount}), bathCount = to_number(#{bathCount})
+		where roomcode = #{roomcode}
+	</update>
+	
+	<!-- 옵션 가져오기 -->
+    <resultMap type="HashMap" id="options">
+        <result property="option_idx" column="option_idx" javaType="String" />
+        <result property="optionname" column="optionName" javaType="String" />
+   </resultMap>
+   
+    <select id="getOptionList" resultMap="options">
+      select option_idx, optionName
+      from options
+      order by option_idx
+   </select>
+   
+   	<!-- 이용규칙 가져오기 -->
+    <resultMap type="HashMap" id="rule">
+        <result property="rule_idx" column="rule_idx" javaType="String" />
+		<result property="rule_name" column="rule_name" javaType="String" />
+   	</resultMap>
+   
+    <select id="getRuleList" resultMap="rule">
+      	select rule_idx, rule_name
+      	from allrule
+      	order by rule_idx
+   	</select>
+   
+   	<delete id="deleteOption" parameterType="String">
+		delete roomoption where fk_roomcode = #{roomcode}
+   	</delete>
+   	
+   	<delete id="deleteRule" parameterType="String">
+   		delete roomrule where fk_roomcode = #{roomcode} 
+   	</delete>
+   	
+   	<insert id="insertOption" parameterType="HashMap">
+		insert into roomOption(roomoption_idx, fk_option_idx, fk_roomcode)
+      	values(roomoption_idx_sep.nextval, #{option}, #{roomcode})
+   	</insert>
+   	
+   	<insert id="insertRule" parameterType="HashMap">
+   		insert into roomrule(roomrule_idx, fk_rule_idx, fk_roomcode)
+      	values(roomrule_idx_seq.nextval, #{rule}, #{roomcode})
+    </insert> 
+</mapper>
